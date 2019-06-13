@@ -33,7 +33,7 @@
         <typetools.version>0.6.1</typetools.version>
         <shiro.version>1.4.0</shiro.version>
         <undertow.version>2.0.21.Final</undertow.version>
-        <jersey2.version>2.27</jersey2.version>
+        <jersey2.version>2.28</jersey2.version>
         <hibernate-validator.version>6.0.13.Final</hibernate-validator.version>
         <aopalliance.version>1.0</aopalliance.version>
         <glassfish-javax.el.version>3.0.0</glassfish-javax.el.version>
