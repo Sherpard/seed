@@ -5,6 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.seed.web.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +57,7 @@ public class WebSecurityIT {
         givenRelaxedSSL().auth().basic("Obiwan", "yodarulez").expect().statusCode(200).when().get(
                 baseUrl + "/jediCouncil.html");
     }
+
     @Test
     public void requestOnSecuredResourceWithGoodBasicauthShouldSend401OnForbiddenResource() {
         givenRelaxedSSL().auth().basic("Anakin", "imsodark").expect().statusCode(401).when().get(
@@ -111,6 +113,6 @@ public class WebSecurityIT {
 
     private RequestSpecification givenRelaxedSSL() {
         return RestAssured.given()
-                .config(RestAssured.config().sslConfig(SSLConfig.sslConfig().relaxedHTTPSValidation("SSL")));
+                .config(RestAssured.config().sslConfig(SSLConfig.sslConfig().relaxedHTTPSValidation()));
     }
 }

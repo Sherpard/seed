@@ -5,6 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.seed.rest.jersey2.internal;
 
 import com.google.common.collect.Lists;
@@ -21,12 +22,17 @@ import javax.ws.rs.ConstrainedTo;
 import javax.ws.rs.RuntimeType;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.server.mvc.jsp.JspMvcFeature;
 import org.glassfish.jersey.servlet.ServletProperties;
 import org.seedstack.seed.rest.RestConfig;
 import org.seedstack.seed.rest.internal.RestPlugin;
 import org.seedstack.seed.rest.spi.RestProvider;
-import org.seedstack.seed.web.spi.*;
+import org.seedstack.seed.web.spi.FilterDefinition;
+import org.seedstack.seed.web.spi.ListenerDefinition;
+import org.seedstack.seed.web.spi.SeedFilterPriority;
+import org.seedstack.seed.web.spi.ServletDefinition;
+import org.seedstack.seed.web.spi.WebProvider;
 import org.seedstack.shed.reflect.Classes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,25 +67,35 @@ public class Jersey2Plugin extends AbstractPlugin implements WebProvider {
                 resources.addAll(restProvider.resources());
                 providers.addAll(filterClasses(restProvider.providers()));
             }
-            LOGGER.debug("Detected {} JAX-RS resource(s)", resources.size());
-            LOGGER.debug("Detected {} JAX-RS provider(s)", providers.size());
+            LOGGER.debug("{} JAX-RS resource(s) detected", resources.size());
+            LOGGER.debug("{} JAX-RS provider(s) detected", providers.size());
 
             Set<Class<?>> enabledFeatures = new HashSet<>();
             if (isMultipartFeaturePresent()) {
                 enabledFeatures.add(MultiPartFeature.class);
-                LOGGER.trace("Detected and enabled JAX-RS multipart feature");
+                LOGGER.debug("Multipart feature is detected and enabled");
             }
+
+            if (isFreemarkerFeaturePresent()) {
+                enabledFeatures.add(FreemarkerMvcFeature.class);
+                LOGGER.debug("FreeMarker feature is detected and enabled");
+            }
+
             if (isJspFeaturePresent()) {
                 enabledFeatures.add(JspMvcFeature.class);
-                LOGGER.trace("Detected and enabled JAX-RS JSP feature");
+                LOGGER.debug("JSP feature is detected and enabled");
             }
             for (Class<?> featureClass : filterClasses(restConfig.getFeatures())) {
                 enabledFeatures.add(featureClass);
-                LOGGER.trace("Enabled JAX-RS feature " + featureClass.getCanonicalName());
+                LOGGER.debug("Feature {} is enabled", featureClass.getCanonicalName());
             }
-            LOGGER.debug("Enabled {} JAX-RS feature(s)", enabledFeatures.size());
 
             Map<String, Object> jersey2Properties = buildJerseyProperties(restConfig);
+            if (LOGGER.isTraceEnabled()) {
+                for (Map.Entry<String, Object> entry : jersey2Properties.entrySet()) {
+                    LOGGER.trace("Jersey property {} = {}", entry.getKey(), String.valueOf(entry.getValue()));
+                }
+            }
 
             jersey2filterDefinition = new FilterDefinition("jersey2", SeedServletContainer.class);
             jersey2filterDefinition.setPriority(SeedFilterPriority.JERSEY);
@@ -147,6 +163,10 @@ public class Jersey2Plugin extends AbstractPlugin implements WebProvider {
 
     private boolean isJspFeaturePresent() {
         return Classes.optional("org.glassfish.jersey.server.mvc.jsp.JspMvcFeature").isPresent();
+    }
+
+    private boolean isFreemarkerFeaturePresent() {
+        return Classes.optional("org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature").isPresent();
     }
 
     private boolean isMultipartFeaturePresent() {

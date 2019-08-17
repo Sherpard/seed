@@ -19,7 +19,7 @@
 
     <groupId>org.seedstack.seed</groupId>
     <artifactId>seed</artifactId>
-    <version>3.8.1-SNAPSHOT</version>
+    <version>3.9.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -43,6 +43,8 @@
         <compatibility.version>3.1.0</compatibility.version>
 
         <bintray.package>seed</bintray.package>
+        <!-- TODO remove the limitation to TLSv1.2 below once built on JDK 12 -->
+        <itArgLine>-Djdk.tls.client.protocols="TLSv1,TLSv1.1,TLSv1.2"</itArgLine>
     </properties>
 
     <modules>
@@ -187,6 +189,7 @@
                         <parameter>
                             <excludes>
                                 <exclude>*.internal.*</exclude>
+                                <exclude>org.seedstack.seed.core.SeedRuntime</exclude>
                                 <exclude>org.seedstack.seed.core.SeedMain</exclude>
                                 <exclude>org.seedstack.seed.DataConfig</exclude>
                                 <exclude>org.seedstack.seed.LoggingConfig</exclude>
@@ -205,6 +208,7 @@
                                 <exclude>org.seedstack.seed.transaction.spi.TransactionMetadata</exclude>
                                 <exclude>org.seedstack.seed.spi.DependencyProvider</exclude>
                                 <exclude>org.seedstack.seed.web.spi.AntiXsrfService</exclude>
+                                <exclude>org.seedstack.seed.crypto.CryptoConfig</exclude>
                             </excludes>
                         </parameter>
                     </configuration>

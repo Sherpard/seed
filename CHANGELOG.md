@@ -1,8 +1,37 @@
-# Version 3.8.1 (2019-02-??)
+# Version 3.9.0 (2019-08-12)
+
+* [new] Introduce the `diag` tool to manually write a diagnostic report to standard output or in a file.
+* [new] Enable configuration of Undertow error pages for specific HTTP codes or exceptions as well as a default error page (`web.server.errorPages` config).
+* [new] SSL truststore can be configured separately from the master keystore (if no configuration it will default to the Java default truststore).
+* [new] A custom X509KeyManager can now be configured to allow control of the chosen key material during SSL handshake.
+* [brk] Plain file X509 certificates (outside a keystore) can no longer be configured as it is less secure and not so useful.
+* [fix] Remove NullPointerException a Undertow shutdown if the it had not started properly before.
+
+# Version 3.8.5 (2019-03-22)
+
+* [new] The `@Provide` annotation allows to register JSR-330 providers for producing injectable instances of a specific type.
+
+# Version 3.8.4 (2019-03-12)
+
+* [fix] Fix Jansi loading on unsupported platforms.
+* [chg] Better logging of detected configuration resources.
+* [chg] Allow configuration through `seedstack.config.*` system properties to override any other configuration source.
+
+# Version 3.8.3 (2019-03-08)
+
+* [chg] JSON home resource is now disabled by default. 
+
+# Version 3.8.2 (2019-03-07)
+
+* [chg] Adaptively supports all Bean Validation specification levels. 
+* [chg] During integration tests with Undertow, launch the application in a separate thread. 
+
+# Version 3.8.1 (2019-02-20)
 
 * [new] Support for the `web.server.welcomeFiles` with Undertow. Default value is `index.html`.
 * [new] Support for file logging configuration when using LogBack. Enable by setting `logging.file.enabled` to `true`.  
 * [chg] Filter priorities updated: resource filter has -2000 priority, and Jersey filter has -1000 priority.
+* [new] Automatic detection and activation of Freemarker Jersey feature from project dependencies.
 
 # Version 3.8.0 (2018-11-27)
 

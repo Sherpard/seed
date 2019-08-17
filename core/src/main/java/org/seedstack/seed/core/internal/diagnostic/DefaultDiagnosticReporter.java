@@ -5,6 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.seed.core.internal.diagnostic;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,7 +13,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +39,10 @@ class DefaultDiagnosticReporter implements DiagnosticReporter {
 
     static {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(
+                JsonInclude.Include.ALWAYS,
+                JsonInclude.Include.NON_NULL
+        ));
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         YAML_FACTORY = new YAMLFactory();
@@ -70,7 +73,8 @@ class DefaultDiagnosticReporter implements DiagnosticReporter {
         }
     }
 
-    void writeDiagnosticReport(Map<String, Object> diagnosticInfo, Writer writer) throws IOException {
+    @Override
+    public void writeDiagnosticReport(Map<String, Object> diagnosticInfo, Writer writer) throws IOException {
         try (JsonGenerator jsonGenerator = YAML_FACTORY.createGenerator(writer)) {
             jsonGenerator.setPrettyPrinter(DEFAULT_PRETTY_PRINTER);
             jsonGenerator.writeObject(diagnosticInfo);

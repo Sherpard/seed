@@ -5,6 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.seed.core.internal;
 
 import com.google.common.base.Strings;
@@ -16,15 +17,19 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Provider;
 import org.kametic.specifications.Specification;
 import org.seedstack.seed.core.internal.utils.SpecificationBuilder;
 import org.seedstack.shed.reflect.Classes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Core plugin that configures base package roots and detects diagnostic collectors, dependency providers, Guice modules
  * and configuration files.
  */
 public class CorePlugin extends AbstractSeedPlugin {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CorePlugin.class);
     static final String AUTODETECT_MODULES_KERNEL_PARAM = "seedstack.autodetectModules";
     static final String AUTODETECT_BINDINGS_KERNEL_PARAM = "seedstack.autodetectBindings";
     private static final String SEEDSTACK_PACKAGE = "org.seedstack";
@@ -32,10 +37,12 @@ public class CorePlugin extends AbstractSeedPlugin {
             InstallResolver.INSTANCE).build();
     private static final Specification<Class<?>> bindSpecification = new SpecificationBuilder<>(
             BindResolver.INSTANCE).build();
+    private static final Specification<Class<?>> providerSpecification = new SpecificationBuilder<>(
+            ProvideResolver.INSTANCE).build();
     private final Set<Class<? extends Module>> modules = new HashSet<>();
     private final Set<Class<? extends Module>> overridingModules = new HashSet<>();
-    private final Set<BindingDefinition> bindings = new HashSet<>();
-    private final Set<BindingDefinition> overridingBindings = new HashSet<>();
+    private final Set<Bindable> bindings = new HashSet<>();
+    private final Set<Bindable> overridingBindings = new HashSet<>();
 
     @Override
     public String name() {
@@ -52,10 +59,10 @@ public class CorePlugin extends AbstractSeedPlugin {
         return classpathScanRequestBuilder()
                 .specification(installSpecification)
                 .specification(bindSpecification)
+                .specification(providerSpecification)
                 .build();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public InitState initialize(InitContext initContext) {
         String autodetectModules = initContext.kernelParam(AUTODETECT_MODULES_KERNEL_PARAM);
@@ -65,6 +72,7 @@ public class CorePlugin extends AbstractSeedPlugin {
         String autodetectBindings = initContext.kernelParam(AUTODETECT_BINDINGS_KERNEL_PARAM);
         if (Strings.isNullOrEmpty(autodetectBindings) || Boolean.parseBoolean(autodetectBindings)) {
             detectBindings(initContext);
+            detectProviders(initContext);
         }
         return InitState.INITIALIZED;
     }
@@ -77,8 +85,10 @@ public class CorePlugin extends AbstractSeedPlugin {
                 .forEach(candidate -> InstallResolver.INSTANCE.apply(candidate).ifPresent(annotation -> {
                     if (annotation.override()) {
                         overridingModules.add((Class<? extends Module>) candidate);
+                        LOGGER.debug("Overriding module {} detected", candidate.getName());
                     } else {
                         modules.add((Class<? extends Module>) candidate);
+                        LOGGER.debug("Module {} detected", candidate.getName());
                     }
                 }));
     }
@@ -92,11 +102,25 @@ public class CorePlugin extends AbstractSeedPlugin {
                                 candidate,
                                 (Class<Object>) (annotation.from() == Object.class ? null : annotation.from())
                         ));
+                        LOGGER.debug("Overriding explicit binding for {} detected", candidate.getName());
                     } else {
                         bindings.add(new BindingDefinition<>(
                                 candidate,
                                 (Class<Object>) (annotation.from() == Object.class ? null : annotation.from())
                         ));
+                        LOGGER.debug("Explicit binding for {} detected", candidate.getName());
+                    }
+                }));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void detectProviders(InitContext initContext) {
+        initContext.scannedTypesBySpecification().get(providerSpecification)
+                .forEach(candidate -> ProvideResolver.INSTANCE.apply(candidate).ifPresent(annotation -> {
+                    if (annotation.override()) {
+                        overridingBindings.add(new ProviderDefinition<>((Class<Provider<Object>>) candidate));
+                    } else {
+                        bindings.add(new ProviderDefinition<>((Class<Provider<Object>>) candidate));
                     }
                 }));
     }
@@ -105,8 +129,7 @@ public class CorePlugin extends AbstractSeedPlugin {
     public Object nativeUnitModule() {
         return new CoreModule(
                 modules.stream().map(Classes::instantiateDefault).collect(Collectors.toSet()),
-                bindings,
-                false
+                bindings
         );
     }
 
@@ -114,8 +137,7 @@ public class CorePlugin extends AbstractSeedPlugin {
     public Object nativeOverridingUnitModule() {
         return new CoreModule(
                 overridingModules.stream().map(Classes::instantiateDefault).collect(Collectors.toSet()),
-                overridingBindings,
-                true
+                overridingBindings
         );
     }
 }

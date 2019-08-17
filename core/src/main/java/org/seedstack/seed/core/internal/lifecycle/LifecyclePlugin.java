@@ -5,6 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.seed.core.internal.lifecycle;
 
 import static org.seedstack.shed.misc.PriorityUtils.sortByPriority;
@@ -16,7 +17,6 @@ import io.nuun.kernel.api.plugin.request.ClasspathScanRequest;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,10 +54,9 @@ public class LifecyclePlugin extends AbstractSeedPlugin implements LifecycleMana
         for (Class<?> candidate : initContext.scannedSubTypesByParentClass().get(LifecycleListener.class)) {
             if (LifecycleListener.class.isAssignableFrom(candidate)) {
                 lifecycleListenerClasses.add((Class<? extends LifecycleListener>) candidate);
-                LOGGER.trace("Detected lifecycle listener {}", candidate.getCanonicalName());
+                LOGGER.debug("Lifecycle listener {} detected", candidate.getCanonicalName());
             }
         }
-        LOGGER.debug("Detected {} lifecycle listener(s)", lifecycleListenerClasses.size());
         return InitState.INITIALIZED;
     }
 
@@ -73,7 +72,8 @@ public class LifecyclePlugin extends AbstractSeedPlugin implements LifecycleMana
 
         for (LifecycleListener lifecycleListener : sortedLifecycleListeners) {
             try {
-                LOGGER.info("Executing started method of lifecycle listener {}", lifecycleListener.getClass().getName());
+                LOGGER.info("Executing started() method of lifecycle listener {}",
+                        lifecycleListener.getClass().getName());
                 lifecycleListener.started();
             } catch (Exception e) {
                 throw SeedException
@@ -101,7 +101,8 @@ public class LifecyclePlugin extends AbstractSeedPlugin implements LifecycleMana
 
         for (LifecycleListener lifecycleListener : sortedLifecycleListeners) {
             try {
-                LOGGER.info("Executing stopping method of lifecycle listener {}", lifecycleListener.getClass().getName());
+                LOGGER.info("Executing stopping() method of lifecycle listener {}",
+                        lifecycleListener.getClass().getName());
                 lifecycleListener.stopping();
             } catch (Exception e) {
                 LOGGER.error("An exception occurred in the stopping() method of lifecycle listener {}",
@@ -116,12 +117,11 @@ public class LifecyclePlugin extends AbstractSeedPlugin implements LifecycleMana
             Method closeMethod = autoCloseable.getClass().getMethod("close");
             if (!Annotations.on(closeMethod).traversingOverriddenMembers().find(Ignore.class).isPresent()) {
                 if (autoCloseableObjects.add(autoCloseable)) {
-                    LOGGER.info("Registered auto-closeable {} for closing at shutdown",
+                    LOGGER.info("Auto-closeable {} registered for closing at shutdown",
                             autoCloseable.getClass().getName());
                 }
             } else {
-                LOGGER.debug("Ignored registration of auto-closeable {} for closing at shutdown",
-                        autoCloseable.getClass().getName());
+                LOGGER.debug("Ignored registration of auto-closeable {}", autoCloseable.getClass().getName());
             }
         } catch (NoSuchMethodException e) {
             throw SeedException.wrap(e, CoreErrorCode.UNEXPECTED_EXCEPTION);

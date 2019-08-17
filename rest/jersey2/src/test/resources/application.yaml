@@ -8,8 +8,7 @@
 
 logging:
   level: INFO
-  loggers:
-    org.seedstack.seed.rest.internal.RestPlugin: DEBUG
+
 web:
   cors:
     enabled: true
@@ -20,6 +19,7 @@ web:
 rest:
   baseRel: http://example.org/rel
   path<withPrefix>: /rest
+  jsonHome: true
   jsonHome<withoutRootResource>: false
 
 textHome<withoutRootResource>: false
