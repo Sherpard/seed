@@ -272,4 +272,10 @@ public interface SecuritySupport {
      * address is unknown.
      */
     String getHost();
+    
+    
+    /**
+     * Calls to shiro to clear the credentials from the cache
+     */
+    void forgetCredentials();
 }

@@ -8,7 +8,7 @@
 
 logging: INFO
 security:
-  realms: [ConfigurationRealm, X509CertificateRealm]
+  realms: [ConfigurationRealm, X509CertificateRealm, SchrodingerRealm]
   cache:
     manager: org.seedstack.seed.security.fixtures.TestCacheManager
   users:

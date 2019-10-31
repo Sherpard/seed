@@ -36,7 +36,6 @@ class SecurityInternalModule extends PrivateModule {
         this.scopeClasses = scopeClasses;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void configure() {
         bind(ShiroRealmAdapter.class);

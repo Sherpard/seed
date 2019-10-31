@@ -37,6 +37,9 @@ class ShiroSecuritySupport implements SecuritySupport {
 
     @Inject
     private Set<Realm> realms;
+    
+    @Inject
+    private ShiroRealmAdapter realmAdapter;
 
     @Override
     public PrincipalProvider<?> getIdentityPrincipal() {
@@ -251,6 +254,15 @@ class ShiroSecuritySupport implements SecuritySupport {
             return null;
         }
         return s.getHost();
+    }
+
+    @Override
+    public void forgetCredentials() {
+      Subject subject = SecurityUtils.getSubject();
+      if(subject == null) {
+        return;
+      }
+      realmAdapter.clearCachedAuthorizationInfo(subject.getPrincipals());
     }
 
 }
