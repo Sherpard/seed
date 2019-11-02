@@ -275,7 +275,7 @@ public interface SecuritySupport {
     
     
     /**
-     * Calls to shiro to clear the credentials from the cache
+     * Calls shiro to clear the credentials from the cache for the current user
      */
     void forgetCredentials();
 }
