@@ -9,6 +9,8 @@ package org.seedstack.seed.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import com.google.inject.Injector;
 import javax.inject.Inject;
 import org.junit.Test;
@@ -17,11 +19,14 @@ import org.seedstack.coffig.Coffig;
 import org.seedstack.coffig.Config;
 import org.seedstack.coffig.SingleValue;
 import org.seedstack.coffig.internal.ConfigurationException;
+import org.seedstack.coffig.mapper.ClassArrayMapperTest.ClassArray;
 import org.seedstack.seed.Application;
 import org.seedstack.seed.ApplicationConfig;
 import org.seedstack.seed.Bind;
 import org.seedstack.seed.ClassConfiguration;
 import org.seedstack.seed.Configuration;
+import org.seedstack.seed.core.fixtures.Dummy;
+import org.seedstack.seed.core.fixtures.DummyService1;
 import org.seedstack.seed.core.fixtures.Service;
 import org.seedstack.seed.core.fixtures.SomeEnum;
 import org.seedstack.seed.testing.junit4.SeedITRunner;
@@ -181,6 +186,20 @@ public class ConfigurationIT {
         assertThat(application.getVersion()).isEqualTo("1.0.0");
     }
 
+    @Test
+    public void testClassArrayConfiguration() {
+
+        ClassArray underTest = injector.getInstance(Holder.class).classArray;
+
+        assertThat(underTest).isNotNull();
+        assertThat(underTest.singleClazz).isNotNull().isEqualTo(Dummy.class);
+        assertThat(underTest.string).isNotNull().hasSize(2).containsExactly(Dummy.class.getCanonicalName(),
+                DummyService1.class.getCanonicalName());
+        assertThat(underTest.list).isNotNull().hasSize(2).containsExactly(Dummy.class, DummyService1.class);
+        assertThat(underTest.clazz).isNotNull().hasSize(2).containsExactly(Dummy.class, DummyService1.class);
+
+    }
+
     @Bind
     private static class Holder {
         @Inject
@@ -215,6 +234,18 @@ public class ConfigurationIT {
 
         @Configuration(injectDefault = false)
         OtherConfigObject otherConfigObject3;
+
+        @Configuration
+        ClassArray classArray;
+    }
+
+    @Config("classArray")
+    private static class ClassArray {
+        Class<?> clazz[];
+        String string[];
+        List<Class<?>> list;
+        Class<?> singleClazz;
+
     }
 
     @Config("someObject")
